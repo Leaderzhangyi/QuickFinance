@@ -24,7 +24,11 @@
       </widget>
      </item>
      <item>
-      <widget class="LineEdit" name="lineEdit"/>
+      <widget class="LineEdit" name="lineEdit">
+       <property name="placeholderText">
+        <string>必填</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -38,7 +42,11 @@
       </widget>
      </item>
      <item>
-      <widget class="LineEdit" name="lineEdit_2"/>
+      <widget class="LineEdit" name="lineEdit_2">
+       <property name="placeholderText">
+        <string>可选</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -52,7 +60,11 @@
       </widget>
      </item>
      <item>
-      <widget class="LineEdit" name="lineEdit_3"/>
+      <widget class="LineEdit" name="lineEdit_3">
+       <property name="placeholderText">
+        <string>可选</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -66,7 +78,14 @@
       </widget>
      </item>
      <item>
-      <widget class="LineEdit" name="lineEdit_4"/>
+      <widget class="LineEdit" name="lineEdit_4">
+       <property name="text">
+        <string/>
+       </property>
+       <property name="placeholderText">
+        <string>可选</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

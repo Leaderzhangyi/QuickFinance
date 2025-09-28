@@ -2,7 +2,6 @@ import sys
 import pandas as pd
 import os
 import re
-import date 
 import openpyxl
 from views.Ui_main import Ui_MainForm
 from qframelesswindow import FramelessWindow, StandardTitleBar, FramelessDialog
@@ -17,39 +16,33 @@ class MainWindow(QWidget, Ui_MainForm):
         self.init_signal()
 
     def init_signal(self):
-        self.tmpButton.clicked.connect(self.select_tmp_file)
-        self.sofpButton.clicked.connect(self.select_sofp_file)
-        self.profitButton.clicked.connect(self.select_profit_file)
-        self.flowButton.clicked.connect(self.select_flow_file)
+        self.tmpButton.clicked.connect(lambda: self.select_file("选择模板文件", "Excel Files (*.xlsx);;All Files (*)", self.lineEdit))
+        self.sofpButton.clicked.connect(lambda: self.select_file("选择资产负债表", "Excel Files (*.xls *.xlsx);;All Files (*)", self.lineEdit_2))
+        self.profitButton.clicked.connect(lambda: self.select_file("选择利润表文件", "Excel Files (*.xls *.xlsx);;All Files (*)", self.lineEdit_3))
+        self.flowButton.clicked.connect(lambda: self.select_file("选择现金流量表", "Excel Files (*.xls *.xlsx);;All Files (*)", self.lineEdit_4))
         self.startButton.clicked.connect(self.start_generate)
 
-    def select_tmp_file(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, "选择模板文件", "", "Excel Files (*.xlsx);;All Files (*)")
+    def select_file(self, title, file_filter, target_lineedit):
+        file_name, _ = QFileDialog.getOpenFileName(self, title, "", file_filter)
         if file_name:
-            self.lineEdit.setText(file_name)
+            target_lineedit.setText(file_name)
 
-    def select_sofp_file(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, "选择资产负债表", "", "Excel Files (*.xls *.xlsx);;All Files (*)")
-        if file_name:
-            self.lineEdit_2.setText(file_name)
-
-    def select_profit_file(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, "选择利润表文件", "", "Excel Files (*.xls *.xlsx);;All Files (*)")
-        if file_name:
-            self.lineEdit_3.setText(file_name)
-
-    def select_flow_file(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, "选择现金流量表", "", "Excel Files (*.xls *.xlsx);;All Files (*)")
-        if file_name:
-            self.lineEdit_4.setText(file_name)
 
     def start_generate(self):
         from datetime import datetime
         today = datetime.today()
         date_str = today.strftime("%Y%m%d")
         output_path = f'{today}_演示.xlsx'
-        template_path = self.lineEdit.text() or 'indexCal.xlsx'
-        input_ofp_path = self.lineEdit_2.text() or '2023SOFP.xls'
+        template_path = self.lineEdit.text() 
+        input_ofp_path = self.lineEdit_2.text() 
+        if template_path == '':
+            QMessageBox.critical(self, "错误", "请选择模板文件")
+            return
+        elif input_ofp_path == '':
+            QMessageBox.critical(self, "错误", "请选择资产负债表文件")
+            return
+
+        
 
         try:
             clean_data = self._process_data(input_ofp_path)
@@ -66,8 +59,8 @@ class MainWindow(QWidget, Ui_MainForm):
         data.columns = data.columns.str.replace(" ", "", regex=False)
         return data
 
-    def _process_data(self, input_ofp_path):
-        ofpDf = self._get_data(input_ofp_path, 'OFP')
+
+    def _process_ofp_data(self,ofpDf) -> pd.DataFrame:
         ofpDf1 = ofpDf.iloc[:, :3]
         ofpDf2 = ofpDf.iloc[:, 4:-1]
         ofpDf2.columns = ofpDf1.columns
@@ -76,6 +69,12 @@ class MainWindow(QWidget, Ui_MainForm):
         odf.drop(columns=['行次'], inplace=True)
         odf.loc[:, '项目'] = odf.loc[:, '项目'].apply(lambda x: re.sub(r'^[△☆▲]', '', x.strip()).strip())
         odf = odf.set_index('项目')['期末余额']
+        return odf
+
+    def _process_data(self, input_ofp_path):
+        ofpDf = self._get_data(input_ofp_path, 'OFP')
+        odf = self._process_ofp_data(ofpDf)
+
         return dict(odf)
 
     def _write_data(self, data, temp_path, output_path):

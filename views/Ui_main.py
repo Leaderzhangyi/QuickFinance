@@ -101,9 +101,14 @@ class Ui_MainForm(object):
     def retranslateUi(self, MainForm):
         MainForm.setWindowTitle(QCoreApplication.translate("MainForm", u"Form", None))
         self.tmpButton.setText(QCoreApplication.translate("MainForm", u"\u8bf7\u9009\u62e9\u6a21\u677f\u6587\u4ef6", None))
+        self.lineEdit.setPlaceholderText(QCoreApplication.translate("MainForm", u"\u5fc5\u586b", None))
         self.sofpButton.setText(QCoreApplication.translate("MainForm", u"\u8bf7\u9009\u62e9\u8d44\u4ea7\u8d1f\u8f7d\u8868", None))
+        self.lineEdit_2.setPlaceholderText(QCoreApplication.translate("MainForm", u"\u53ef\u9009", None))
         self.profitButton.setText(QCoreApplication.translate("MainForm", u"\u8bf7\u9009\u62e9\u8d44\u5229\u6da6\u8868", None))
+        self.lineEdit_3.setPlaceholderText(QCoreApplication.translate("MainForm", u"\u53ef\u9009", None))
         self.flowButton.setText(QCoreApplication.translate("MainForm", u"\u8bf7\u9009\u62e9\u6d41\u91cf\u8868", None))
+        self.lineEdit_4.setText("")
+        self.lineEdit_4.setPlaceholderText(QCoreApplication.translate("MainForm", u"\u53ef\u9009", None))
         self.startButton.setText(QCoreApplication.translate("MainForm", u"\u5f00\u59cb\u751f\u6210", None))
     # retranslateUi
 
