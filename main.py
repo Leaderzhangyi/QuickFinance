@@ -3,20 +3,31 @@ import pandas as pd
 import os
 import re
 import openpyxl
+from datetime import datetime
 from views.Ui_main import Ui_MainForm
 from qframelesswindow import FramelessWindow, StandardTitleBar, FramelessDialog
-from PySide6.QtWidgets import QApplication, QMainWindow, QWidget, QMessageBox, QFileDialog
+from PySide6.QtWidgets import QApplication, QWidget, QMessageBox, QFileDialog
+from PySide6.QtGui import QIcon
 from PySide6.QtCore import Qt
+import resource_rc
 
+# print(sys.platform)
+# if sys.platform == 'win32':
+#     try:
+#         import ctypes  # type: ignore
+#         ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID("bai.ImageCDSSystem")
+#     except Exception:
+#         pass
 class MainWindow(QWidget, Ui_MainForm):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
         self.setWindowTitle("QuickFine - ZinkCas v0.1")
+        self.setWindowIcon(QIcon(":/imgs/logo.png"))
         self.init_signal()
 
     def init_signal(self):
-        self.tmpButton.clicked.connect(lambda: self.select_file("选择模板文件", "Excel Files (*.xlsx);;All Files (*)", self.lineEdit))
+        self.tmpButton.clicked.connect(lambda: self.select_file("选择模板文件", "Excel Files (*.xlsx *.xls);;All Files (*)", self.lineEdit))
         self.sofpButton.clicked.connect(lambda: self.select_file("选择资产负债表", "Excel Files (*.xls *.xlsx);;All Files (*)", self.lineEdit_2))
         self.profitButton.clicked.connect(lambda: self.select_file("选择利润表文件", "Excel Files (*.xls *.xlsx);;All Files (*)", self.lineEdit_3))
         self.flowButton.clicked.connect(lambda: self.select_file("选择现金流量表", "Excel Files (*.xls *.xlsx);;All Files (*)", self.lineEdit_4))
@@ -29,21 +40,20 @@ class MainWindow(QWidget, Ui_MainForm):
 
 
     def start_generate(self):
-        from datetime import datetime
+        
         today = datetime.today()
         date_str = today.strftime("%Y%m%d")
-        output_path = f'{today}_演示.xlsx'
+        output_path = f'{date_str}_演示.xlsx'
         template_path = self.lineEdit.text() 
         input_ofp_path = self.lineEdit_2.text() 
+        input_profit_path = self.lineEdit_3.text() 
+        input_flow_path = self.lineEdit_4.text() 
         if template_path == '':
             QMessageBox.critical(self, "错误", "请选择模板文件")
             return
         elif input_ofp_path == '':
             QMessageBox.critical(self, "错误", "请选择资产负债表文件")
             return
-
-        
-
         try:
             clean_data = self._process_data(input_ofp_path)
             self._write_data(clean_data, template_path, output_path)
@@ -60,18 +70,18 @@ class MainWindow(QWidget, Ui_MainForm):
         return data
 
 
-    def _process_ofp_data(self,ofpDf) -> pd.DataFrame:
+    def _process_ofp_data(self,ofpDf) -> pd.Series:
         ofpDf1 = ofpDf.iloc[:, :3]
         ofpDf2 = ofpDf.iloc[:, 4:-1]
         ofpDf2.columns = ofpDf1.columns
         odf = pd.concat([ofpDf1, ofpDf2], axis=0).reset_index(drop=True)
         odf = odf.dropna(subset=['期末余额'])
         odf.drop(columns=['行次'], inplace=True)
-        odf.loc[:, '项目'] = odf.loc[:, '项目'].apply(lambda x: re.sub(r'^[△☆▲]', '', x.strip()).strip())
+        odf.loc[:, '项目'] = odf.loc[:, '项目'].apply(lambda x: re.sub(r'^[△☆▲ ]', '', x.strip()).strip())
         odf = odf.set_index('项目')['期末余额']
         return odf
 
-    def _process_data(self, input_ofp_path):
+    def _process_data(self, input_ofp_path) -> dict:
         ofpDf = self._get_data(input_ofp_path, 'OFP')
         odf = self._process_ofp_data(ofpDf)
 
