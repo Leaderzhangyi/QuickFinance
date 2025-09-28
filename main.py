@@ -2,6 +2,7 @@ import sys
 import pandas as pd
 import os
 import re
+import date 
 import openpyxl
 from views.Ui_main import Ui_MainForm
 from qframelesswindow import FramelessWindow, StandardTitleBar, FramelessDialog
@@ -22,17 +23,33 @@ class MainWindow(QWidget, Ui_MainForm):
         self.flowButton.clicked.connect(self.select_flow_file)
         self.startButton.clicked.connect(self.start_generate)
 
-    def select_profit_file(self):
-        options = QFileDialog.Options()
-        file_name, _ = QFileDialog.getOpenFileName(self, "选择利润表文件", "", "Excel Files (*.xls *.xlsx);;All Files (*)", options=options)
+    def select_tmp_file(self):
+        file_name, _ = QFileDialog.getOpenFileName(self, "选择模板文件", "", "Excel Files (*.xlsx);;All Files (*)")
         if file_name:
-            profit_data = self._get_data(file_name, 'PR')  # 假设 'PR' 是利润表的标识
-            print(profit_data)  # 或者在界面上显示数据
+            self.lineEdit.setText(file_name)
+
+    def select_sofp_file(self):
+        file_name, _ = QFileDialog.getOpenFileName(self, "选择资产负债表", "", "Excel Files (*.xls *.xlsx);;All Files (*)")
+        if file_name:
+            self.lineEdit_2.setText(file_name)
+
+    def select_profit_file(self):
+        file_name, _ = QFileDialog.getOpenFileName(self, "选择利润表文件", "", "Excel Files (*.xls *.xlsx);;All Files (*)")
+        if file_name:
+            self.lineEdit_3.setText(file_name)
+
+    def select_flow_file(self):
+        file_name, _ = QFileDialog.getOpenFileName(self, "选择现金流量表", "", "Excel Files (*.xls *.xlsx);;All Files (*)")
+        if file_name:
+            self.lineEdit_4.setText(file_name)
 
     def start_generate(self):
-        output_path = self.output_path_input.text() or '演示.xlsx'
-        template_path = self.template_path_input.text() or 'indexCal.xlsx'
-        input_ofp_path = self.input_ofp_path_input.text() or '2023SOFP.xls'
+        from datetime import datetime
+        today = datetime.today()
+        date_str = today.strftime("%Y%m%d")
+        output_path = f'{today}_演示.xlsx'
+        template_path = self.lineEdit.text() or 'indexCal.xlsx'
+        input_ofp_path = self.lineEdit_2.text() or '2023SOFP.xls'
 
         try:
             clean_data = self._process_data(input_ofp_path)
@@ -44,6 +61,8 @@ class MainWindow(QWidget, Ui_MainForm):
     def _get_data(self, path, flag=None) -> pd.DataFrame:
         if flag == 'OFP':
             data = pd.read_excel(path, header=3)
+        else:
+            data = pd.read_excel(path)
         data.columns = data.columns.str.replace(" ", "", regex=False)
         return data
 
