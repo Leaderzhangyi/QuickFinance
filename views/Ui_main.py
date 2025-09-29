@@ -18,13 +18,13 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QHBoxLayout, QSizePolicy, QVBoxLayout,
     QWidget)
 
-from qfluentwidgets import (LineEdit, PrimaryPushButton, PushButton)
+from qfluentwidgets import (ComboBox, LineEdit, PrimaryPushButton, PushButton)
 
 class Ui_MainForm(object):
     def setupUi(self, MainForm):
         if not MainForm.objectName():
             MainForm.setObjectName(u"MainForm")
-        MainForm.resize(377, 405)
+        MainForm.resize(377, 384)
         self.verticalLayout = QVBoxLayout(MainForm)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.horizontalLayout = QHBoxLayout()
@@ -87,10 +87,20 @@ class Ui_MainForm(object):
 
         self.verticalLayout.addLayout(self.horizontalLayout_4)
 
+        self.horizontalLayout_5 = QHBoxLayout()
+        self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
+        self.comboBox = ComboBox(MainForm)
+        self.comboBox.setObjectName(u"comboBox")
+
+        self.horizontalLayout_5.addWidget(self.comboBox)
+
         self.startButton = PrimaryPushButton(MainForm)
         self.startButton.setObjectName(u"startButton")
 
-        self.verticalLayout.addWidget(self.startButton)
+        self.horizontalLayout_5.addWidget(self.startButton)
+
+
+        self.verticalLayout.addLayout(self.horizontalLayout_5)
 
 
         self.retranslateUi(MainForm)
@@ -109,6 +119,7 @@ class Ui_MainForm(object):
         self.flowButton.setText(QCoreApplication.translate("MainForm", u"\u8bf7\u9009\u62e9\u6d41\u91cf\u8868", None))
         self.lineEdit_4.setText("")
         self.lineEdit_4.setPlaceholderText(QCoreApplication.translate("MainForm", u"\u53ef\u9009", None))
+        self.comboBox.setPlaceholderText(QCoreApplication.translate("MainForm", u"\u8bf7\u9009\u62e9\u5e74\u4efd", None))
         self.startButton.setText(QCoreApplication.translate("MainForm", u"\u5f00\u59cb\u751f\u6210", None))
     # retranslateUi
 

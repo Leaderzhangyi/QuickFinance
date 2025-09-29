@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>377</width>
-    <height>405</height>
+    <height>384</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -90,11 +90,22 @@
     </layout>
    </item>
    <item>
-    <widget class="PrimaryPushButton" name="startButton">
-     <property name="text">
-      <string>开始生成</string>
-     </property>
-    </widget>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="ComboBox" name="comboBox">
+       <property name="placeholderText">
+        <string>请选择年份</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="PrimaryPushButton" name="startButton">
+       <property name="text">
+        <string>开始生成</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>
@@ -112,6 +123,11 @@
   <customwidget>
    <class>PrimaryPushButton</class>
    <extends>QPushButton</extends>
+   <header>qfluentwidgets</header>
+  </customwidget>
+  <customwidget>
+   <class>ComboBox</class>
+   <extends>QComboBox</extends>
    <header>qfluentwidgets</header>
   </customwidget>
  </customwidgets>
