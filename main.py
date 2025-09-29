@@ -6,11 +6,10 @@ import openpyxl
 from datetime import datetime
 from views.Ui_main import Ui_MainForm
 from omegaconf import OmegaConf
-
-from qframelesswindow import FramelessWindow, StandardTitleBar, FramelessDialog
-from PySide6.QtWidgets import QApplication, QWidget, QMessageBox, QFileDialog
-from PySide6.QtGui import QIcon
-from PySide6.QtCore import Qt
+from qfluentwidgets import CommandBar,Action,FluentIcon,CommandBarView
+from PySide6.QtWidgets import QApplication, QWidget, QMessageBox, QFileDialog, QMenuBar,QWidgetAction
+from PySide6.QtGui import QIcon,QDesktopServices
+from PySide6.QtCore import Qt, QUrl
 import resource_rc
 
 if sys.platform == 'win32':
@@ -35,7 +34,16 @@ class MainWindow(QWidget, Ui_MainForm):
         self.setWindowIcon(QIcon(":/imgs/logo.png"))
         self.init_signal()
         self.init_status()
+        self.init_menu()
 
+    def init_menu(self):
+        # 创建菜单栏
+        commandBar = CommandBar()
+        commandBar.addAction(Action(FluentIcon.GITHUB, '分享', triggered=lambda: QDesktopServices.openUrl(QUrl("https://github.com/Leaderzhangyi/QuickFinance"))))
+  
+
+        self.verticalLayout.insertWidget(0, commandBar)
+     
     def init_status(self):
         self.comboBox.addItems(["2022", "2023", "2024", "2025"])
         self.config = ensure_config()
@@ -75,7 +83,6 @@ class MainWindow(QWidget, Ui_MainForm):
 
 
     def start_generate(self):
-        
         today = int(datetime.now().timestamp())
         output_path = f'{today}_自动填充表.xlsx'
         template_path = self.lineEdit.text() 
@@ -96,33 +103,52 @@ class MainWindow(QWidget, Ui_MainForm):
             QMessageBox.critical(self, "错误", str(e))
 
     def _get_data(self, path) -> pd.DataFrame:
-        data = pd.read_excel(path, header=3)
+        data = pd.read_excel(path, header=3,na_values=['0'])
         data.columns = data.columns.str.replace(" ", "", regex=False)
+         # 自定义去重逻辑，给重复列名加下标
+        seen = {}
+        new_cols = []
+        for c in data.columns:
+            if c not in seen:
+                seen[c] = 0
+                new_cols.append(c)
+            else:
+                seen[c] += 1
+                new_cols.append(f"{c}.{seen[c]}")
+        data.columns = new_cols
         return data
 
 
     def _parse_data(self,pdfunit:tuple) -> pd.Series:
+
         """
         解析df单元格数据
         """
         df,flag = pdfunit
-
         if flag == 'OFP':
             colName = '期末余额'
         else:
             colName = '本期金额'
-        df1 = df.iloc[:, :3]
-        df2 = df.iloc[:, 4:-1]
+        df1 = df.loc[:,["项目",colName]]
+        df2 = df.loc[:,["项目.1",f"{colName}.1"]]
+        # import ipdb;ipdb.set_trace()
         df2.columns = df1.columns
         df = pd.concat([df1, df2], axis=0).reset_index(drop=True)
         df = df.dropna(subset=[colName])
-        df.drop(columns=['行次'], inplace=True)
-        df.loc[:, '项目'] = df.loc[:, '项目'].apply(lambda x: re.sub(r'^[△☆▲*# ]', '', x.strip()).strip())
-        df.loc[:, '项目'] = df.loc[:, '项目'].apply(lambda x: re.sub(r'^[一二三四五六七八九十]+、|^（[一二三四五六七八九十]+）|^\d+\.', '', x).strip())
-
-        df.loc[:, '项目'] = df.loc[:, '项目'].str.replace(' ', '', regex=False)
+        # 只保留字符串
+        df = df[df['项目'].apply(lambda x: isinstance(x, str))]
+        # 去掉 '0' 和空字符串
+        df = df[~df['项目'].str.strip().isin(["0", ""])]
+        # 去掉开头符号
+        df.loc[:, '项目'] = df['项目'].apply(lambda x: re.sub(r'^[△☆▲*# ]', '', x.strip()))
+        # 去掉序号 (一、二、三... / （一）（二）... / 1. 2. ...)
+        df.loc[:, '项目'] = df['项目'].apply(lambda x: re.sub(r'^[一二三四五六七八九十]+、|^（[一二三四五六七八九十]+）|^\d+\.', '', x.strip()).strip())
+        # 去掉空格
+        df.loc[:, '项目'] = df['项目'].str.replace(' ', '', regex=False)
+        # 转成 Series
         dseries = df.set_index('项目')[colName]
         return dseries
+
 
 
     def _process_data(self, input_ofp_path,input_profit_path,input_flow_path) -> dict:
@@ -137,7 +163,7 @@ class MainWindow(QWidget, Ui_MainForm):
             fseries = self._parse_data((flowDf,'FLOW'))
 
         oseries = self._parse_data((ofpDf,'OFP'))
-       
+        print(oseries)
 
         return dict(oseries) | dict(pseries) | dict(fseries)
 
